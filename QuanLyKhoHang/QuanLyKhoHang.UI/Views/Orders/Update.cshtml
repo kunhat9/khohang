@@ -1,0 +1,800 @@
+﻿
+@using QuanLyKhoHang.UI.Models
+@model OrderInfoView
+@{
+    Layout = "~/Views/Shared/_Layout_Admin.cshtml";
+
+}
+<div class="x_panel">
+    <div class="x_title">
+        <h2><i class="fa fa-pencil"></i>@(Model.Orders == null ? "Thêm mới hóa đơn" : "Cập nhật hóa đơn")</h2>
+        <div class="clearfix"></div>
+        <ul class="nav nav-tabs bar_tabs nhomquyen col-md-12" role="tablist">
+            <li role="presentation" class="active"><a href="#" id="thongtincoban">Thông tin cơ bản</a></li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+        <form id="frm-capnhat" method="post" enctype="multipart/form-data" novalidate="novalidate" class="fv-form fv-form-bootstrap">
+            @*<button type="submit" class="fv-hidden-submit" style="display: none; width: 0px; height: 0px;"></button>*@
+            <input type="hidden" id="OrderId" name="OrderId" value="@(Model.Orders != null ? Model.Orders.OrderId:0)" />
+            <div class="col-md-12 col-sm-12 col-xs-12 clearfix">
+                <div class="form-group col-md-6 col-sm-6 col-xs-12">
+                    <label class="control-label" for="first-name">Chọn nhà cung cấp :</label>
+                    <div>
+                        <select class="ctr-select" data-live-search="true" id="OrderProviderId" name="OrderProviderId" disabled="@(Model.Orders != null)">
+                            @Html.Raw(ViewBag.cbxProvider)
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group col-md-6 col-sm-6 col-xs-12">
+                    <label class="control-label" for="first-name">Loại hóa đơn</label>
+                    <div>
+                        <select disabled="@(Model.Orders != null)" class="ctr-select" data-live-search="true" id="OrderType" name="OrderType">
+                            <option value="" @(Model.Orders == null ? "selected" : "")>Chọn loại hóa đơn ......</option>
+                            <option value="@EnumOrderType.NHAP" @(Model.Orders != null && Model.Orders.OrderType == EnumOrderType.NHAP ? "selected" : "")>@EnumOrderType.ToString(EnumOrderType.NHAP)</option>
+                            <option value="@EnumOrderType.XUAT" @(Model.Orders != null && Model.Orders.OrderType == EnumOrderType.XUAT ? "selected" : "")>@EnumOrderType.ToString(EnumOrderType.XUAT)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 col-sm-12 col-xs-12 clearfix">
+                <div class="form-group col-md-6 col-sm-6 col-xs-12">
+                    <label class="control-label" for="first-name">Ngày tạo hóa đơn</label>
+                    <div>
+                        <input type="text" class="form-control" id="OrderDate" name="OrderDate" readonly value="@(Model.Orders == null ? DateTime.Now.ToString("dd/MM/yyyy"): Model.Orders.OrderDate.Value.ToString("dd/MM/yyyy"))" autocomplete="off" )>
+                    </div>
+                </div>
+                <div class="form-group col-md-6 col-sm-6 col-xs-12">
+                    <label class="control-label" for="first-name">Trạng thái:</label>
+                    <div>
+                        <select disabled="@(Model.Orders != null)" class="ctr-select" data-live-search="true" name="UserStatus">
+                            <option value="@EnumOrderStatus.DANG_SU_DUNG" @(Model.Orders != null && Model.Orders.OrderStatus == EnumOrderStatus.DANG_SU_DUNG ? "Selected" : "")>@EnumOrderStatus.ToString(EnumOrderStatus.DANG_SU_DUNG)</option>
+                            <option value="@EnumOrderStatus.KHONG_SU_DUNG" @(Model.Orders != null && Model.Orders.OrderStatus == EnumOrderStatus.KHONG_SU_DUNG ? "Selected" : "")>@EnumOrderStatus.ToString(EnumOrderStatus.KHONG_SU_DUNG)</option>
+                            <option value="@EnumOrderStatus.HET_HANG" @(Model.Orders != null && Model.Orders.OrderStatus == EnumOrderStatus.HET_HANG ? "Selected" : "")>@EnumOrderStatus.ToString(EnumOrderStatus.HET_HANG)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 col-xs-12 clearfix">
+                <div class="form-group col-md-12 col-sm-12 col-xs-12">
+                    <label class="control-label" for="first-name">Danh sách sản phẩm :</label>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 col-xs-12 clearfix">
+                <div class="form-group" id="listSanPham" hidden>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row mgt-2 mulitiple-form">
+                                <div class="subElement">
+                                    <div class="col-md-12" row>
+                                        <div class="col-md-10"></div>
+                                        <div class="col-md-2 diviconplus">
+                                            <span class="iconplus"><i class="fa fa-plus" onclick="addElement(0)" aria-hidden="true">Thêm sản phẩm</i></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 row">
+                                        <div class="col-md-2">
+                                            <div id="Product"></div>
+                                        </div>
+                                        <div class="col-md-2" id="Order" hidden>
+                                            <div id="OrderContent"></div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ValueDate" type="text" class="form-control not-empty datetimepicker" placeholder="Ngày sản xuất">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ExpireDate" type="text" class="form-control not-empty datetimepicker" placeholder="Ngày hết hạn sử dụng">
+                                        </div>
+                                        <div class="col-md-2" hidden>
+                                            <input id="ProductId" type="text" class="form-control" placeholder="Enter property">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input id="ProductNumber" type="text" data-id="0" onkeyup="CheckTotalProductInOrder(this)" onkeypress="return validateNumber(event)" class="form-control" placeholder="Số lượng">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input id="ProductUnit" type="text" class="form-control" placeholder="Đơn vị tính">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ProductPrice" onkeyup="formatCurrency(this)" onkeypress="return validateNumber(event)" type="text" class="form-control" placeholder="Đơn giá">
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 col-xs-12 clearfix">
+                <div class="clearfix"></div>
+                <div class="ln_solid"></div>
+
+                <div class="form-group clearfix">
+                    <div class="col-md-12 col-sm-12 col-xs-12 text-right">
+                        <a class="btn btn-primary" href="@Url.Action("MainPage","Orders", new { area = "QuanTri"})">Hủy</a>
+                        <button id="btn-save" type="button" onclick="saveData()" class="btn btn-success">Lưu thông tin</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="modal-capnhatthongtin"></div>
+<div class="modal" tabindex="-1" role="dialog" id="modal-themmoithongtin"></div>
+
+<style>
+    .subElement {
+        padding-bottom: 50px;
+    }
+</style>
+
+<script>
+    let dataModel = @Html.Raw(Json.Encode(Model.OrderDetails));
+    $(function () {
+        $('#ValueDate').datetimepicker({ format: 'DD/MM/YYYY' });
+        $('#ExpireDate').datetimepicker({
+            format: 'DD/MM/YYYY',
+        });
+
+
+
+    });
+    $(document).ready(function(){
+        debugger;
+        let data = @Html.Raw(Json.Encode(Model.OrderDetails));
+        console.log(data);
+        if(data != null){
+            $('#OrderProviderId').change();
+            for(var i = 0 ;i< data.length;i++){
+                var item = data[i].OrderDetails;
+                if(i==0){
+
+                    $('#ProductCode').val(item.DetailProductId.toString()).change();
+                    $('#ProductNumber').val(item.DetailNumber);
+                    $('#ProductPrice').val(item.DetailPrice);
+                    $('#ValueDate').val(fomartDate(item.DetailValueDate));
+                    $('#ExpireDate').val(fomartDate(item.DetailExpiredDate));
+                    $('#ProductUnit').val(item.DetailsUnits);
+
+
+                    if($('#OrderType').val() == '@EnumOrderType.XUAT'){
+                        $('#OrderCode').removeAttr("hidden",'false');
+                        $('#OrderCode'+i).val(item.DetailsOrderProductId.toString()).change();
+                    }
+
+
+                }
+                else {
+                    addElement(i);
+                    $('#ProductCode'+i).val(item.DetailProductId.toString()).change();
+                    $('#ProductNumber'+i).val(item.DetailNumber);
+                    $('#ProductPrice'+i).val(item.DetailPrice);
+                    $('#ValueDate'+i).val(fomartDate(item.DetailValueDate));
+                    $('#ExpireDate'+i).val(fomartDate(item.DetailExpiredDate));
+                    $('#ProductUnit'+i).val(item.DetailsUnits);
+
+                    if($('#OrderType') == '@EnumOrderType.XUAT'){
+                        $('#OrderCode'+i).val(item.DetailsOrderProductId.toString()).change();
+                    }
+
+
+                }
+            }
+        }
+
+    });
+    $(document).on("change", "[name=OrderType]", function () {
+
+        let htmlSubElement = ` <div class="col-md-12" row>
+                                        <div class="col-md-10"></div>
+                                        <div class="col-md-2 diviconplus">
+                                            <span class="iconplus"><i class="fa fa-plus" onclick="addElement(0)" aria-hidden="true">Thêm sản phẩm</i></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 row">
+                                        <div class="col-md-2">
+                                            <div id="Product"></div>
+                                        </div>
+                                        <div class="col-md-2" id="Order" hidden>
+                                            <div id="OrderContent"></div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ValueDate" type="text" class="form-control not-empty datetimepicker" placeholder="Ngày sản xuất">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ExpireDate" type="text" class="form-control not-empty datetimepicker" placeholder="Ngày hết hạn sử dụng">
+                                        </div>
+                                        <div class="col-md-2" hidden>
+                                            <input id="ProductId" type="text" class="form-control" placeholder="Enter property">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input id="ProductNumber"  data-id="${current}" type="text" onkeypress="return validateNumber(event)" class="form-control" placeholder="Số lượng">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input id="ProductUnit" type="text" class="form-control" placeholder="Đơn vị tính">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input id="ProductPrice" onkeyup="formatCurrency(this)" onkeypress="return validateNumber(event)" type="text" class="form-control" placeholder="Đơn giá">
+                                        </div>
+                                    </div>`;
+        if(current > 1){
+            for(var i=current-1;i >0;i--){
+                removeCurElement(i);
+            }
+        }
+        $('.subElement').html('');
+        $('.subElement').html(htmlSubElement);
+        var orderType =$('#OrderType').val();
+        if(orderType == '@EnumOrderType.NHAP' || orderType == '@EnumOrderType.XUAT'){
+            if($('#OrderProviderId').val().trim().length > 0){
+                $('#listSanPham').removeAttr("hidden","false");
+                var htmlProduct = `<select class="ctr-select" onchange="selectProduct('0')" data-live-search="true" id="ProductCode" name="ProductCode">`+renderProductCode+`</select>`;
+                $('#Product').html(htmlProduct);
+
+
+                var htmlOrderType = `<select class="ctr-select" onchange="selectProduct('0')" data-live-search="true" id="ProductCode" name="ProductCode">`+renderProductCode+`</select>`;
+
+                if(orderType == '@EnumOrderType.XUAT'){
+                    $('#Order').removeAttr("hidden","false");
+                    var htmlDefault = `<select class="ctr-select" onchange="selectOrder('0')" data-live-search="true" id="DetailsOrderProductId" name="DetailsOrderProductId"><option value="">Chọn lô hàng nhập......</option></select>`;
+                    $('#OrderContent').html(htmlDefault);
+                }
+                $(".ctr-select").selectpicker({
+                    width: '100%',
+                    showTick: true,
+                });
+                $('.datetimepicker').datetimepicker({ format: 'DD/MM/YYYY' });
+
+            }
+        }
+    })
+
+    $(document).on("change", "[name=OrderProviderId]", function () {
+        var params = {
+            id : $('#OrderProviderId').val()
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetProductByProvider", "Orders", new { area = "QuanTri" })',
+            type: 'POST',
+            async : false,
+            data:params ,
+            success: function (data) {
+                if (data.kq == "ok") {
+                    renderProductCode = `<option value="">Chọn sản phẩm.......</option>`+data.data;
+                    var htmlDefault = `<select class="ctr-select" onchange="selectProduct('0')" data-live-search="true" id="ProductCode" name="ProductCode"><option value="">Chọn sản phẩm.......</option>`+data.data+`</select>`;
+                    $('#Product').html(htmlDefault);
+                    var orderType =$('#OrderType').val();
+
+                    if(orderType == '@EnumOrderType.NHAP' || orderType == '@EnumOrderType.XUAT'){
+                        $('#listSanPham').removeAttr("hidden","false");
+                        if(orderType == '@EnumOrderType.XUAT'){
+                            $('#Order').removeAttr("hidden","false");
+                        }
+                    }
+                    $(".ctr-select").selectpicker({
+                        width: '100%',
+                        showTick: true,
+                    });
+                }
+                else {
+                    alertify.error(data.msg);
+                }
+            }
+        });
+
+    });
+    var renderProductCode = "";
+    var renderOrderCode ="";
+    let data = @Html.Raw(Json.Encode(Model));
+    $arr = [0]
+    var current = 1;
+    console.log(current);
+    if(data.order != null){
+        // neu chon create chu ko phai xem chi tiet
+        var product = data.details;
+
+        for(var i =0; i<product.length-1;i++){
+            addElement(i);
+        }
+        $('#ProviderId').val(data.order.OrderProviderId).change();
+        for(var i =0; i<product.length;i++){
+            var pro = product[i];
+            console.log(pro.DetailProductId);
+            if(i != 0 ){
+                $('#ProductCode'+i).val(pro.DetailProductId).change();
+            }else{
+                $('#ProductCode').val(pro.DetailProductId).change();
+            }
+        }
+
+        console.log(product);
+    }
+    function fomartDate(jsonDate){
+        var currentTime = Date.parse(jsonDate.match(/\d+/)[0]);
+        var month = currentTime.getMonth() + 1;
+        var day = currentTime.getDate();
+        var year = currentTime.getFullYear();
+        var date = day + "/" + month + "/" + year;
+        return date;
+    }
+    function addElement(pos) {
+        if(pos != current)
+            pos = current;
+        var typeOrder = $('#OrderType').val();
+        let attr = ``;
+        if(typeOrder == '@EnumOrderType.NHAP'){
+            attr = `<div class ="subElement">
+                <div class ="col-md-12 row">
+                    <div class ="col-md-2">
+                        <select class="ctr-select" onchange="selectProduct(${current})" data-live-search="true" name ="ProductCode${current}" tabindex="-1" aria-hidden="true" id="ProductCode${current}">
+                            `+
+                                renderProductCode
+                        + `</select>
+                    </div>
+                    <div class ="col-md-2">
+                        <input id="ValueDate${current}" type="text" class ="form-control not-empty datetimepicker" placeholder="Ngày sản xuất">
+                    </div>
+                    <div class ="col-md-2">
+                        <input id="ExpireDate${current}" type="text" class ="form-control not-empty datetimepicker" placeholder="Ngày hết hạn sử dụng">
+                    </div>
+                    <div class ="col-md-2" hidden>
+                        <input id="ProductId${current}" type="text" class ="form-control" placeholder="Enter property">
+                    </div>
+                    <div class ="col-md-1">
+                        <input id="ProductNumber${current}" data-id="${current}" type="text" onkeypress="return validateNumber(event)" class ="form-control" placeholder="Số lượng">
+                    </div>
+                     <div class="col-md-1">
+                                                    <input id="ProductUnit${current}" type="text" class="form-control" placeholder="Đơn vị tính">
+                                                </div>
+                    <div class ="col-md-2">
+                        <input id="ProductPrice${current}" type="text"  onkeyup="formatCurrency(this)" onkeypress="return validateNumber(event)" class ="form-control" placeholder="Đơn giá">
+                    </div>
+                    <div class ="col-md-2 diviconplus">
+                        <span class ="iconplus"><i onclick= "removeCurElement(${current})" class ="fa fa-minus" aria-hidden="true"> Loại bỏ</i></span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        }else {
+            attr = `<div class ="subElement">
+                 <div class="col-md-12" row>
+                                        <div class="col-md-10"></div>
+                                        <div class="col-md-2 diviconplus">
+                                            <span class ="iconplus"><i onclick= "removeCurElement(${current})" class ="fa fa-minus" aria-hidden="true"> Loại bỏ</i></span>
+                                        </div>
+                                    </div>
+                <div class ="col-md-12 row">
+                    <div class ="col-md-2">
+                        <select class="ctr-select" onchange="selectProduct(${current})" data-live-search="true" name ="ProductCode${current}" tabindex="-1" aria-hidden="true" id="ProductCode${current}">
+                            `+
+                                renderProductCode
+                        + `</select>
+                    </div>
+                    <div class ="col-md-2">
+                       <div id="OrderContent${current}">
+                       <select class="ctr-select" onchange="selectOrder(${current})" data-live-search="true" name ="OrderCode${current}" tabindex="-1" aria-hidden="true" id="OrderCode${current}">
+                            `+
+                                renderOrderCode
+                        + `</select>
+                       </div>
+
+                    </div>
+                    <div class ="col-md-2">
+                        <input id="ValueDate${current}" type="text" class ="form-control not-empty datetimepicker" placeholder="Ngày sản xuất">
+                    </div>
+                    <div class ="col-md-2">
+                        <input id="ExpireDate${current}" type="text" class ="form-control not-empty datetimepicker" placeholder="Ngày hết hạn sử dụng">
+                    </div>
+                    <div class ="col-md-2" hidden>
+                        <input id="ProductId${current}" type="text" class ="form-control" placeholder="Enter property">
+                    </div>
+                    <div class ="col-md-1">
+                        <input id="ProductNumber${current}" type="text" data-id="${current}" onkeypress="return validateNumber(event)" class ="form-control" placeholder="Số lượng">
+                    </div>
+                     <div class="col-md-1">
+                                                    <input id="ProductUnit${current}" type="text" class="form-control" placeholder="Đơn vị tính">
+                                                </div>
+                    <div class ="col-md-2">
+                        <input id="ProductPrice${current}" type="text"  onkeyup="formatCurrency(this)" onkeypress="return validateNumber(event)" class ="form-control" placeholder="Đơn giá">
+                    </div>
+
+                </div>
+            </div>
+        </div>`;
+        }
+        $('.mulitiple-form').append(attr);
+        $arr.push(current);
+        $(".ctr-select").selectpicker({
+            width: '100%',
+            showTick: true,
+        });
+        $('.datetimepicker').datetimepicker({ format: 'DD/MM/YYYY' });
+        current = current + 1;
+    }
+    var dataProductXuat ="";
+    function selectProduct(index){
+        dataProductXuat = "";
+        var productId ="";
+        if(index ==0){
+            productId = $('#ProductCode').val();
+        }else {
+            productId = $('#ProductCode'+index).val();
+        }
+        var params = {
+            id : productId
+        }
+        $.ajax({
+            url: '@Url.Action("GetOrderXuatByProduct", "Orders", new { area = "QuanTri" })',
+            type: 'POST',
+            data:params ,
+            success: function (data) {
+                if (data.kq == "ok") {
+                    dataProductXuat = data.data.list;
+                    var htmlDefault = `<select class="ctr-select" onchange="selectOrder('`+index+`')" data-live-search="true" id="OrderCode`+index+`" name="OrderCode`+index+`"><option value="">Chọn hóa đơn.......</option>`+data.data.data+`</select>`;
+
+                    if(index ==0){
+                        $('#OrderContent').html(htmlDefault);
+                    }else {
+                        $('#OrderContent'+index).html(htmlDefault);
+                    }
+
+                    $(".ctr-select").selectpicker({
+                        width: '100%',
+                        showTick: true,
+                    });
+                }
+                else {
+                    alertify.error(data.msg);
+                }
+            }
+        });
+    }
+    function selectOrder(index){
+        var orderId = "";
+        orderId = $('#OrderCode'+index).val();
+        if(index ==0){
+            $('#ValueDate').val(fomartDate(dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailExpiredDate));
+            $('#ExpireDate').val(fomartDate(dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailExpiredDate));
+            $('#ProductUnit').val((dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailsUnits));
+
+            $('#ValueDate').attr("readonly",true);
+            $('#ExpireDate').attr("readonly",true);
+            $('#ProductUnit').attr("readonly",true);
+        }else {
+            $('#ValueDate'+index).val(fomartDate(dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailExpiredDate));
+            $('#ExpireDate'+index).val(fomartDate(dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailExpiredDate));
+            $('#ProductUnit'+index).val((dataProductXuat.filter(x=>x.Order.OrderId == orderId)[0].OrderDetails.DetailsUnits));
+
+            $('#ValueDate'+index).attr("readonly",true);
+            $('#ExpireDate'+index).attr("readonly",true);
+            $('#ProductUnit'+index).attr("readonly",true);
+
+        }
+    }
+    function removeCurElement($cur) {
+        $i = 0;
+        $pos = 0;
+        for ($i; $i < $arr.length; $i++) {
+            if ($arr[$i] == $cur) {
+                $pos = $i;
+                $arr.splice($i, 1);
+            }
+        }
+        $('.subElement')[$pos].remove();
+        current = current - 1;
+    }
+
+
+
+    function formatCurrency(target) {
+        const pat = /(\,[0-9]{0,3})$/gm;
+
+        if (pat)
+            var separate = ".";
+        var s = target.value.toString().split('.').join("");
+        var regex = /\B(?=(\d{3})+(?!\d))/g;
+
+        if (s.includes(',')) {
+            s = s.split(',');
+            var ret = s[0].replace(regex, separate);
+            ret = ret + ',' + s[1];
+        } else {
+            var ret = s.replace(regex, separate);
+        }
+        target.value = ret;
+    }
+
+    function validateNumber(e) {
+        if ((e.keyCode > 47 && e.keyCode < 58) || e.keyCode == 44)
+            return true;
+        else
+            return false;
+    }
+    function checkValid(value) {
+        if (value == '' || value == null) return false;
+        else {
+            const patt = /[\'\"\!\#\$\%\^\&\*\(\)\<\>]/g;
+            const res = patt.test(value);
+            return res;
+        }
+    }
+</script>
+
+<script>
+    mnActive = "mn-order";
+    $(document).ready(function () {
+        $(".ctr-select").selectpicker({
+            width: '100%',
+            showTick: true,
+        });
+    })
+    $(document).on('keyup', '#UserName', function () {
+        var userName = $("#UserName").val();
+        var convert = change_alias(userName);
+        $("#UserName").val(convert);
+    });
+    $(document).on('change', '#Email', function () {
+        var oldEmail = $("#OldEmail").val();
+        var newEmail = $("#Email").val();
+        if (newEmail != oldEmail) {
+            $(".security").removeClass("hidden-display");
+            $(".security").addClass("active-display");
+        }
+    });
+    $(document).on('change', '#ReferralCode', function () {
+        var oldReferralCode = $("#OldReferralCode").val();
+        var referralCode = $("#ReferralCode").val();
+        if (referralCode != oldReferralCode) {
+            $(".security").removeClass("hidden-display");
+            $(".security").addClass("active-display");
+        }
+    });
+    $(document).on('change', '#BankID', function () {
+        $('#frm-capnhat').formValidation('updateStatus', 'BankID', 'NOT_VALIDATED').formValidation('validateField', 'BankID');
+    });
+    $(document).on('change', '#BankID', function () {
+        var bankID = $("#BankID").val();
+        $.ajax({
+            url: '@Url.Action("GetBranchList", "Account", new { area = "" })?bankID=' + bankID + "&userID=" + $("#UserID").val(),
+            type: 'GET',
+            mimeType: "multipart/form-data",
+            contentType: false,
+            processData: false,
+            async: false,
+            cache: false,
+            success: function (data) {
+                $("#Bank_BranchID").html(data)
+                $("#Bank_BranchID").selectpicker("refresh");
+                $('#frm-capnhat').formValidation('updateStatus', 'Bank_BranchID', 'NOT_VALIDATED').formValidation('validateField', 'Bank_BranchID');
+            }
+        });
+    });
+    $(document).on('change', '#Bank_BranchID', function () {
+        $('#frm-capnhat').formValidation('updateStatus', 'Bank_BranchID', 'NOT_VALIDATED').formValidation('validateField', 'Bank_BranchID');
+    });
+    $(document).on('change', '#ReferralCode', function () {
+        $('#frm-capnhat').formValidation('updateStatus', 'ReferralCode', 'NOT_VALIDATED').formValidation('validateField', 'ReferralCode');
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('.datetimepicker1').datetimepicker({
+            format: "DD/MM/YYYY"
+        }).on("dp.change", function (e) {
+            $('#frm-capnhat').formValidation('updateStatus', 'DateOfBirth', 'NOT_VALIDATED').formValidation('validateField', 'DateOfBirth');
+        });
+    });
+</script>
+<script>
+    function validate(){
+        if($('#OrderProviderId').val().length ==0)
+        {
+            alertify.error("Chưa chọn nhà cung cấp");
+            $('#OrderProviderId').focus().select();
+            return false;
+        }
+        var type = $('#OrderType').val();
+        if($('#OrderType').val().length ==0)
+        {
+            alertify.error("Chưa chọn loại hóa đơn");
+            $('#OrderType').focus().select();
+            return false;
+        }
+
+        // neu vao nhap thi kiem tra
+        var a = new FormData(document.getElementById('frm-capnhat'));
+        var arr= [];
+        for(var i=current-1;i>=0;i--){
+            var obj = {};
+            if(i==0){
+                if(a.get("ProductCode").length ==0 ){
+                    alertify.error("Chưa lựa chọn sản phẩm");
+                    $('#ProductCode').focus().select();
+                    return false;
+                }
+                if($("#ProductNumber").val().length ==0 ){
+                    alertify.error("Chưa nhập số lượng");
+                    $('#ProductNumber').focus();
+                    return false;
+                }
+                if($("#ProductPrice").val().length ==0 ){
+                    alertify.error("Chưa nhập giá sản phẩm");
+                    $('#ProductPrice').focus();
+                    return false;
+                }
+                if($("#ValueDate").val().length ==0 ){
+                    alertify.error("Chưa nhập ngày sản xuất");
+                    $('#ValueDate').focus();
+                    return false;
+                }
+                if($("#ExpireDate").val().length ==0 ){
+                    alertify.error("Chưa  nhập ngày hết hạn");
+                    $('#ExpireDate').focus();
+                    return false;
+                }
+                if($("#ProductUnit").val().length ==0 ){
+                    alertify.error("Chưa nhập đơn vị tính");
+                    $('#ProductUnit').focus();
+                    return false;
+                }
+            }else {
+                if(a.get("ProductCode"+i).length ==0 ){
+                    alertify.error("Chưa lựa chọn sản phẩm");
+                    $('#ProductCode').focus().select();
+                    return false;
+                }
+                if($("#ProductNumber"+i).val().length ==0 ){
+                    alertify.error("Chưa nhập số lượng");
+                    $('#ProductNumber').focus();
+                    return false;
+                }
+                if($("#ProductPrice"+i).val().length ==0 ){
+                    alertify.error("Chưa nhập giá sản phẩm");
+                    $('#ProductPrice').focus();
+                    return false;
+                }
+                if($("#ValueDate"+i).val().length ==0 ){
+                    alertify.error("Chưa nhập ngày sản xuất");
+                    $('#ValueDate').focus();
+                    return false;
+                }
+                if($("#ExpireDate"+i).val().length ==0 ){
+                    alertify.error("Chưa  nhập ngày hết hạn");
+                    $('#ExpireDate').focus();
+                    return false;
+                }
+                if($("#ProductUnit"+i).val().length ==0 ){
+                    alertify.error("Chưa nhập đơn vị tính");
+                    $('#ProductUnit').focus();
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    function CheckTotalProductInOrder(evt){
+        debugger;
+
+        var type = $('#OrderType').val();
+        if(type == '@EnumOrderType.XUAT'){
+            // neu la xuat thy kiem tra so luong hang con lai hay khong
+            //var params = {
+            //    product : product,
+            //    order : order
+            //}
+            @*$.ajax({
+                url: '@Url.Action("Update", "User", new { area = "QuanTri" })',
+                type: 'POST',
+                dataType: 'json',
+                mimeType: "multipart/form-data",
+                contentType: false,
+                processData: false,
+                async: false,
+                cache: false,
+                data: new FormData(document.getElementById('frm-capnhat')),
+                success: function (data) {
+                    if (data.kq == "ok") {
+                        alertify.success(data.msg);
+                        window.location.href = '@Url.Action("MainPage", "User", new { area= "QuanTri" })';
+                    }
+                    else {
+                        alertify.error(data.msg);
+                        document.getElementById("btn-save").disabled = false;
+                        $("#btn-save").removeClass("disabled");
+                    }
+                }
+            });*@
+
+        }
+    }
+    function saveData(){
+        if(validate()){
+            var a = new FormData(document.getElementById('frm-capnhat'));
+            var arr= [];
+            for(var i=current-1;i>=0;i--){
+                var obj = {};
+                if(i==0){
+
+                    obj = {
+                        DetailProductId:a.get("ProductCode"),
+                        DetailsUnits : $("#ProductUnit").val(),
+                        DetailNumber:$("#ProductNumber").val(),
+                        DetailPrice:$("#ProductPrice").val().replace(".",""),
+                        DetailValueDate:$("#ValueDate").val().split('/').reverse().join("-"),
+                        DetailExpiredDate:$("#ExpireDate").val().split('/').reverse().join("-"),
+                        DetailsOrderProductId:$("#OrderCode0").val(),
+                        DetailOrderId:$('#OrderId').val(),
+                    }
+
+                }else {
+                    obj = {
+                        DetailProductId:a.get("ProductCode"+i),
+                        DetailNumber:$("#ProductNumber"+i).val(),
+                        DetailPrice:$("#ProductPrice"+i).val().replace(".",""),
+                        DetailValueDate:$("#ValueDate"+i).val().split('/').reverse().join("-"),
+                        DetailExpiredDate:$("#ExpireDate"+i).val().split('/').reverse().join("-"),
+                        DetailsOrderProductId:$("#OrderCode"+i).val(),
+                        DetailsUnits : $("#ProductUnit"+i).val(),
+                        DetailOrderId:$('#OrderId').val(),
+                    }
+                }
+                if(obj.DetailProductId !=""){
+                    if(obj.DetailsOrderProductId == undefined)
+                        obj.DetailsOrderProductId =0;
+                    arr.push(obj);
+                }
+
+            }
+            var params = {
+                OrderType : a.get("OrderType"),
+                OrderId : $('#OrderId').val(),
+                OrderProviderId : a.get("OrderProviderId"),
+                list : arr
+            }
+            console.log(params);
+            $.ajax({
+                url: '@Url.Action("Update", "Orders", new { area = "QuanTri" })',
+                type: 'POST',
+                data: params,
+                success: function (data) {
+                    if (data.kq == "ok") {
+                        alertify.success(data.msg);
+                        window.location.href = '@Url.Action("MainPage", "Orders", new { area= "QuanTri" })';
+                    }
+                    else {
+                        alertify.error(data.msg);
+                        document.getElementById("btn-save").disabled = false;
+                        $("#btn-save").removeClass("disabled");
+                    }
+                }
+            });
+        }
+
+
+
+    }
+
+    function change_alias(alias) {
+        var str = alias;
+        str = str.toLowerCase();
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+        str = str.replace(/đ/g, "d");
+        str = str.replace(/!|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g, " ");
+        str = str.replace(/ + /g, " ");
+        str = str.trim();
+        return str;
+    }
+    function EnterUserName(evt) {
+        var val = evt.value;
+        $('#Phone').val(val);
+    }
+</script>
